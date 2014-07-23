@@ -5,3 +5,6 @@
 /output/
 BASE_PATH
 .DS_Store
+*~
+.ruby-version
+Gemfile.lock

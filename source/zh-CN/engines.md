@@ -1,53 +1,31 @@
-Getting Started with Engines
+Engine入门
 ============================
 
-In this guide you will learn about engines and how they can be used to provide
-additional functionality to their host applications through a clean and very
-easy-to-use interface.
 
-After reading this guide, you will know:
+在本文中你将学习engine以及怎样使用engine为其主程序提供干净易用的额外功能。
+
+读完本文，你将学到：
 
 * What makes an engine.
-* How to generate an engine.
+* 怎样创建一个engine。
 * Building features for the engine.
-* Hooking the engine into an application.
-* Overriding engine functionality in the application.
+* 将engine挂载到应用程序。
+* 在应用程序中覆盖engine的功能。
 
 --------------------------------------------------------------------------------
 
-What are engines?
+什么是engine？
 -----------------
 
-Engines can be considered miniature applications that provide functionality to
-their host applications. A Rails application is actually just a "supercharged"
-engine, with the `Rails::Application` class inheriting a lot of its behavior
-from `Rails::Engine`.
+Engine可以认为是为其主程序提供功能的小型应用程序。事实上，一个Rails应用程序就是一个“加强版”的engine，因为`Rails::Application`类从`Rails::Engine`类继承了许多特性。
 
-Therefore, engines and applications can be thought of almost the same thing,
-just with subtle differences, as you'll see throughout this guide. Engines and
-applications also share a common structure.
+因此，engine与应用程序可以被认为是几乎一样的东西，只是略有不同，你将会在本文中看到。Engine和应用程序也有着相同的结构。
 
-Engines are also closely related to plugins. The two share a common `lib`
-directory structure, and are both generated using the `rails plugin new`
-generator. The difference is that an engine is considered a "full plugin" by
-Rails (as indicated by the `--full` option that's passed to the generator
-command). We'll actually be using the `--mountable` option here, which includes
-all the features of `--full`, and then some. This guide will refer to these 
-"full plugins" simply as "engines" throughout. An engine **can** be a plugin,
-and a plugin **can** be an engine.
+Engine也与plugin密切相关。它们都有相同的`lib`文件夹结构，并且都使用`rails plugin new`产生器来创建。不同的是engine被Rails认为是“完整的插件”（使用产生器的`--full`选项来表明）。我们在这里实际上将会使用`--mountable`选项，这包括所有的`--full`特性以及其他的一些特性。本文中将这些“完整的插件”简单的看做“engine”。engine **可以** 是plugin，plugin也 **可以** 是engine。
 
-The engine that will be created in this guide will be called "blorgh". This
-engine will provide blogging functionality to its host applications, allowing
-for new articles and comments to be created. At the beginning of this guide, you
-will be working solely within the engine itself, but in later sections you'll
-see how to hook it into an application.
+本文中将要创建的engine叫做“blorgh”。这个engine将为其主程序提供博客功能，允许创建新的文章及评论。在本文的开始，你将仅仅在engine中开发，而在后面的章节中，你将会看到怎样将它挂载到一个应用程序。
 
-Engines can also be isolated from their host applications. This means that an
-application is able to have a path provided by a routing helper such as
-`articles_path` and use an engine also that provides a path also called
-`articles_path`, and the two would not clash. Along with this, controllers, models
-and table names are also namespaced. You'll see how to do this later in this
-guide.
+Engine也可以与其主程序隔离。也就是说，应用程序可以有一个routing helper提供的`articles_path`路径，并且使用的engine也提供一个叫做`articles_path`的路径，并且它们不会冲突。与这个一样，控制器、模型以及表名也都使用了命名空间。你将会在后面的章节中看到如何做到的。
 
 It's important to keep in mind at all times that the application should
 **always** take precedence over its engines. An application is the object that
@@ -66,39 +44,32 @@ Finally, engines would not have been possible without the work of James Adam,
 Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
 meet them, don't forget to say thanks!
 
-Generating an engine
+创建engine
 --------------------
 
-To generate an engine, you will need to run the plugin generator and pass it
-options as appropriate to the need. For the "blorgh" example, you will need to
-create a "mountable" engine, running this command in a terminal:
+要创建engine，你需要运行插件产生器并根据需要传递适当的选项给它。在“blorgh”例子中，你将需要创建一个“mountable” engine，在终端中运行下面的命令：
 
 ```bash
 $ bin/rails plugin new blorgh --mountable
 ```
 
-The full list of options for the plugin generator may be seen by typing:
+输入一下命令查看插件产生器的完整选项列表：
 
 ```bash
 $ bin/rails plugin --help
 ```
 
-The `--mountable` option tells the generator that you want to create a
-"mountable" and namespace-isolated engine. This generator will provide the same
-skeleton structure as would the `--full` option. The `--full` option tells the
-generator that you want to create an engine, including a skeleton structure
-that provides the following:
+`--mountable`选项告诉产生器你想要创建一个“mountable”并且命名空间隔离的engine。产生器将提供与`--full`选项相同的骨架结构。`--full`选项告诉产生器你想要一个包括下面列出的骨架结构的engine：
 
-  * An `app` directory tree
-  * A `config/routes.rb` file:
+  * 一个`app`目录树
+  * 一个`config/routes.rb`文件：
 
     ```ruby
     Rails.application.routes.draw do
     end
     ```
 
-  * A file at `lib/blorgh/engine.rb`, which is identical in function to a
-    standard Rails application's `config/application.rb` file:
+  * 一个与标准的Rails应用程序的`config/application.rb`文件功能相同的`lib/blorgh/engine.rb`文件：
 
     ```ruby
     module Blorgh
@@ -107,20 +78,20 @@ that provides the following:
     end
     ```
 
-The `--mountable` option will add to the `--full` option:
+`--mountable`选项会比`--full`选项多添加以下内容：
 
-  * Asset manifest files (`application.js` and `application.css`)
-  * A namespaced `ApplicationController` stub
-  * A namespaced `ApplicationHelper` stub
-  * A layout view template for the engine
-  * Namespace isolation to `config/routes.rb`:
+  * 静态资源清单文件（`application.js` 和 `application.css`）
+  * 带命名空间的 `ApplicationController`
+  * 带命名空间的 `ApplicationHelper`
+  * 视图布局模板
+  * `config/routes.rb`中的命名空间隔离:
 
     ```ruby
     Blorgh::Engine.routes.draw do
     end
     ```
 
-  * Namespace isolation to `lib/blorgh/engine.rb`:
+  * `lib/blorgh/engine.rb`中的命名空间隔离:
 
     ```ruby
     module Blorgh
@@ -130,10 +101,7 @@ The `--mountable` option will add to the `--full` option:
     end
     ```
 
-Additionally, the `--mountable` option tells the generator to mount the engine
-inside the dummy testing application located at `test/dummy` by adding the
-following to the dummy application's routes file at
-`test/dummy/config/routes.rb`:
+此外，`--mountable`选项使产生器通过在虚拟测试程序的位于`test/dummy/config/routes.rb`的路由文件中添加下面的代码将engine挂载到位于`test/dummy`的虚拟测试程序中：
 
 ```ruby
 mount Blorgh::Engine, at: "blorgh"
@@ -143,15 +111,13 @@ mount Blorgh::Engine, at: "blorgh"
 
 #### Critical Files
 
-At the root of this brand new engine's directory lives a `blorgh.gemspec` file.
-When you include the engine into an application later on, you will do so with
-this line in the Rails application's `Gemfile`:
+在这个全新的engine的根目录下有一个`blorgh.gemspec`文件。当你稍后将engine挂载到一个应用程序时，你将需要在这个Rails应用程序的`Gemfile`添加下面的代码：
 
 ```ruby
 gem 'blorgh', path: "vendor/engines/blorgh"
 ```
 
-Don't forget to run `bundle install` as usual. By specifying it as a gem within
+不要忘记像平时一样运行 `bundle install`。 By specifying it as a gem within
 the `Gemfile`, Bundler will load it as such, parsing this `blorgh.gemspec` file
 and requiring a file within the `lib` directory called `lib/blorgh.rb`. This
 file requires the `blorgh/engine.rb` file (located at `lib/blorgh/engine.rb`)
@@ -164,12 +130,9 @@ module Blorgh
 end
 ```
 
-TIP: Some engines choose to use this file to put global configuration options
-for their engine. It's a relatively good idea, so if you want to offer
-configuration options, the file where your engine's `module` is defined is
-perfect for that. Place the methods inside the module and you'll be good to go.
+TIP: 有些engine选择使用此文件来存放其全局配置选项。这是个比较好的主意，所以，如果你想要提供配置选项，你的engine的`module`文件是个完美的地方。将方法放到module里面就没有问题了。
 
-Within `lib/blorgh/engine.rb` is the base class for the engine:
+在`lib/blorgh/engine.rb`里面是engine的基础类：
 
 ```ruby
 module Blorgh
@@ -298,7 +261,7 @@ controller. To quickly generate this, you can use the Rails scaffold generator.
 $ bin/rails generate scaffold article title:string text:text
 ```
 
-This command will output this information:
+这个命令将会输出以下信息：
 
 ```
 invoke  active_record
@@ -550,7 +513,7 @@ create it, run this command from the application root:
 $ bin/rails g controller comments
 ```
 
-This will generate the following things:
+这将会生成以下目录及文件：
 
 ```
 create  app/controllers/blorgh/comments_controller.rb
@@ -624,7 +587,7 @@ it within an application.
 Hooking Into an Application
 ---------------------------
 
-Using an engine within an application is very easy. This section covers how to
+在应用程序中使用engine非常简单。This section covers how to
 mount the engine into an application and the initial setup required, as well as
 linking the engine to a `User` class provided by the application to provide
 ownership for articles and comments within the engine.
